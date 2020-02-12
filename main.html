@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" type="image/png" href="img/favicon.png"/>
+
+    <title>Sobriquets</title>
+    <meta name="description" content="An implementation of Codenames."/>
+    <meta name="author" content="James Calixto"/>
+
+    <link rel="stylesheet" href="styles.css">
+  </head>
+
+  <body>
+    <script type="text/javascript" src="main.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.1/lib/alea.min.js"></script>
+
+    <header>
+      <h1>Sobriquets</h1>
+      <h2>a project by <a href="https://jamescalixto.com">James Calixto</a></h2>
+    </header>
+
+    <article id="article">
+      <div id="hash-container">
+        <div id="hash-container-input">
+          <div id="hash-name" class="hash-container-field">
+            <div class="hash-element">(all players) enter the same word</div>
+            <div class="hash-element">
+              <input type="text" id="hash-name-field" class="hash-field" value="">
+            </div>
+          </div>
+          <div id="hash-password" class="hash-container-field">
+              <div class="hash-element">(spymasters only) enter a password</div>
+              <div class="hash-element">
+                <input type="text" id="hash-password-field" class="hash-field" value="">
+              </div>
+          </div>
+        </div>
+        <div id="hash-container-submit">
+          <div id="hash-submit" class="hash-instructions">
+            <input type="button" id="hash-submit-button" class="submit-button" onclick="buildNewGame()" value="Start game"> 
+          </div>
+        </div>
+      </div>
+
+      <div id="card-template" class="card" style="display:none">
+          <h3 id="card-label" class="card-label">sobriquets</h3>
+      </div>
+
+      <div id="status-bar" style="display:none">
+        <div id="status-first">??? goes first.</div>
+        <div id="status-instructions">(click/tap on a card to change its state)</div>
+        <div id="status-remaining-container">
+          <div id="status-remaining-red" class="status-remaining-red">?</div>
+          <div id="status-remaining-separator"> — </div>
+          <div id="status-remaining-blue" class="status-remaining-blue">?</div>
+        </div>
+      </div>
+      <div id="board-container"></div>
+      </div>
+    </article>
+    
+    <script type="text/javascript">
+    function buildNewGame() {
+      // Make status bar visible.
+      document.getElementById("status-bar").style.display = "flex";
+
+      // Get input for seeds.
+      let hash_name = document.getElementById("hash-name-field").value;
+      let hash_password = document.getElementById("hash-password-field").value;
+      let is_spymaster = (hash_password !== "");
+
+      // Extra salting for reusability.
+      // Players in the same time period (length given by SALT_PERIOD) will have
+      // their hashes synchronized; outside this period the same input will give
+      // different hashes. Allows players to reuse the same inputs.
+      const SALT_PERIOD = 10000000; // in milliseconds; about 2.7 hours
+      let time_salt = Math.floor(new Date().getTime() / SALT_PERIOD);
+      hash_name += time_salt;
+      hash_password += time_salt;
+
+      // Read in the list of words, then set up everything
+      // in the callback function.
+      fetch('data/default.txt')
+        .then(response => response.text())
+        .then(text => text.split(','))
+        .then(function(word_list) {
+          buildNewBoard(hash_name, hash_password, word_list, is_spymaster);
+          updateStatusBar(hash_name, is_spymaster);
+        });
+    }
+
+    </script>
+</html>
